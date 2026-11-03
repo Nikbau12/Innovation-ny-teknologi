@@ -33,7 +33,15 @@
         {
           "photosPermission": "Tillad $(PRODUCT_NAME) at bruge dine billeder til opslag"
         }
-      ]
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Tillad $(PRODUCT_NAME) at bruge din placering, så du kan finde materialer i nærheden og vise, hvor dine materialer står"
+        }
+      ],
+      "expo-status-bar",
+      "expo-font"
     ]
   }
 }

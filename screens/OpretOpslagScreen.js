@@ -1,149 +1,86 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { ref, push } from "firebase/database";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
+import { ref, push, onValue } from "firebase/database";
 import { auth, rtdb } from "../database/firebase";
 import ButtonComponent from "../components/ButtonComponent";
-import InputComponent from "../components/InputComponent";
-import BilledeComponent from "../components/BilledeComponent";
-import { KATEGORIER } from "../data/const";
+import OpslagFormComponent from "../components/OpslagFormComponent";
+import { TOMT_OPSLAG } from "../data/const";
+import { klargoerOpslag, validerOpslag } from "../data/funktioner";
 import { GlobalStyle } from "../styles/GlobalStyle";
 
 export default function OpretOpslagScreen({ navigation, route }) {
-    const [titel, setTitel] = useState("");
-    const [materiale, setMateriale] = useState("");
-    const [pris, setPris] = useState("");
-    const [sted, setSted] = useState("");
-    const [kategori, setKategori] = useState(KATEGORIER[0]);
-    const [billede, setBillede] = useState("");
+    const [data, setData] = useState(TOMT_OPSLAG);
+    const [profil, setProfil] = useState(null);
     const [fejl, setFejl] = useState("");
+    const [gemmer, setGemmer] = useState(false);
 
-    // Billede taget med kameraet kommer tilbage som parameter
     useEffect(() => {
         if (route.params?.billede) {
-            setBillede(route.params.billede);
+            setData((prev) => ({ ...prev, billede: route.params.billede }));
         }
     }, [route.params?.billede]);
 
-    const vaelgBillede = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.2,
-            base64: true,
+    useEffect(() => {
+        const unsubscribe = onValue(ref(rtdb, "/Brugere/" + auth.currentUser.uid), (snap) => {
+            setProfil(snap.val());
         });
+        return unsubscribe;
+    }, []);
 
-        if (!result.canceled) {
-            const valgt = result.assets[0];
-            setBillede("data:image/jpeg;base64," + valgt.base64);
-        }
-    };
+    const aendr = (aendringer) => setData((prev) => ({ ...prev, ...aendringer }));
 
     const opretOpslag = async () => {
-        if (titel === "" || pris === "") {
-            setFejl("Du skal mindst udfylde titel og pris.");
+        const valideringsFejl = validerOpslag(data);
+        if (valideringsFejl !== "") {
+            setFejl(valideringsFejl);
             return;
         }
 
         const idag = new Date();
 
         const nytOpslag = {
-            titel: titel,
-            materiale: materiale,
-            pris: pris,
-            sted: sted,
-            kategori: kategori,
-            billede: billede,
+            ...klargoerOpslag(data),
             saelger: auth.currentUser?.email,
+            saelgerId: auth.currentUser.uid,
+            saelgerNavn: profil?.navn || auth.currentUser?.displayName || auth.currentUser?.email,
+            saelgerType: profil?.brugertype || "Privat",
             dato: idag.getDate() + "." + (idag.getMonth() + 1) + "." + idag.getFullYear(),
+            oprettet: Date.now(),
         };
 
+        setGemmer(true);
         try {
             await push(ref(rtdb, "/Opslag/"), nytOpslag);
         } catch (e) {
             setFejl(e?.message || "Noget gik galt.");
+            setGemmer(false);
             return;
         }
 
-        setTitel("");
-        setMateriale("");
-        setPris("");
-        setSted("");
-        setKategori(KATEGORIER[0]);
-        setBillede("");
+        setData(TOMT_OPSLAG);
         setFejl("");
+        setGemmer(false);
         navigation.setParams({ billede: undefined });
 
-        navigation.navigate("Oversigt", { screen: "OversigtListe" });
+        navigation.navigate("Oversigt", { screen: "OversigtListe", pop: true });
     };
 
     return (
-        <ScrollView style={GlobalStyle.container}>
-            <Text style={GlobalStyle.overskrift}>Opret opslag</Text>
-            <Text style={GlobalStyle.underOverskrift}>
-                Har du materialer til overs? Udfyld felterne, så kommer dit opslag i oversigten.
-            </Text>
+        <KeyboardAvoidingView style={GlobalStyle.skaerm} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={100}>
+            <ScrollView contentContainerStyle={GlobalStyle.formIndhold} keyboardShouldPersistTaps="handled">
+                <Text style={GlobalStyle.overskrift}>Sælg materialer</Text>
+                <Text style={GlobalStyle.underOverskrift}>
+                    Jo flere detaljer du udfylder, jo lettere er det for købere at finde dit opslag. Felter med * skal udfyldes.
+                </Text>
 
-            <InputComponent
-                label="Titel"
-                value={titel}
-                onChangeText={setTitel}
-                placeholder="F.eks. Træbjælker, 12 stk."
-            />
-            <InputComponent
-                label="Beskrivelse"
-                value={materiale}
-                onChangeText={setMateriale}
-                placeholder="Type, mål og stand"
-            />
-            <InputComponent
-                label="Pris"
-                value={pris}
-                onChangeText={setPris}
-                placeholder="F.eks. 400 kr. eller Gratis"
-            />
-            <InputComponent
-                label="Sted"
-                value={sted}
-                onChangeText={setSted}
-                placeholder="F.eks. Frederiksberg"
-            />
+                <OpslagFormComponent data={data} onAendr={aendr} onTagBillede={() => navigation.navigate("Kamera")} />
 
-            <Text style={GlobalStyle.inpLabel}>Kategori</Text>
-            <View style={GlobalStyle.kategoriRaekke}>
-                {KATEGORIER.map((k, key) => (
-                    <View key={key} style={GlobalStyle.kategoriKnap}>
-                        <ButtonComponent
-                            titel={k}
-                            type={kategori === k ? "primary" : "secondary"}
-                            onPress={() => setKategori(k)}
-                        />
-                    </View>
-                ))}
-            </View>
+                {fejl !== "" && <Text style={GlobalStyle.fejl}>{fejl}</Text>}
 
-            <Text style={GlobalStyle.inpLabel}>Billede</Text>
-            <View style={GlobalStyle.billedKnapper}>
-                <View style={GlobalStyle.billedKnap}>
-                    <ButtonComponent titel="Tag billede" type="secondary" onPress={() => navigation.navigate("Kamera")} />
+                <View style={GlobalStyle.knapContainer}>
+                    <ButtonComponent titel="Opret opslag" type="primary" ikon="checkmark-circle-outline" onPress={opretOpslag} loading={gemmer} />
                 </View>
-                <View style={GlobalStyle.billedKnap}>
-                    <ButtonComponent titel="Vælg fra galleri" type="secondary" onPress={vaelgBillede} />
-                </View>
-            </View>
-            {/* Forhåndsvisning af brugerens eget billede - vises kun hvis der er valgt et */}
-            {billede !== "" ? (
-                <BilledeComponent url={{ uri: billede }} style={GlobalStyle.forhaandsvisning} />
-            ) : (
-                <Text style={GlobalStyle.billedTekst}>Intet billede valgt endnu.</Text>
-            )}
-
-            {fejl !== "" && <Text style={GlobalStyle.fejl}>{fejl}</Text>}
-
-            <View style={GlobalStyle.knapContainer}>
-                <ButtonComponent titel="Opret opslag" type="primary" onPress={opretOpslag} />
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }

@@ -1,27 +1,61 @@
 import { Pressable, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import BilledeComponent from "./BilledeComponent";
-import { GlobalStyle } from "../styles/GlobalStyle";
+import { KATEGORI_IKONER } from "../data/const";
+import { FARVER, GlobalStyle } from "../styles/GlobalStyle";
 
-export default function OpslagCard({ titel, materiale, pris, sted, saelger, kategori, billede, dato, onPress }) {
+export default function OpslagCard({ titel, pris, sted, afstand, kategori, billede, dato, status, stand, style, onPress }) {
+    const erGratis = pris === "Gratis";
+
     return (
         <Pressable
             onPress={onPress}
-            style={({ pressed }) => [GlobalStyle.kort, pressed && onPress ? GlobalStyle.kortTrykket : null]}
+            style={({ pressed }) => [GlobalStyle.kort, style, pressed && onPress ? GlobalStyle.kortTrykket : null]}
         >
-            {/* Kun brugerens eget billede - der findes ingen standardbilleder */}
-            {billede ? <BilledeComponent url={{ uri: billede }} style={GlobalStyle.kortBillede} /> : null}
+            <View>
+                {billede ? (
+                    <BilledeComponent url={{ uri: billede }} style={GlobalStyle.kortBillede} />
+                ) : (
+                    <View style={[GlobalStyle.kortBillede, GlobalStyle.kortPladsholder]}>
+                        <MaterialCommunityIcons
+                            name={KATEGORI_IKONER[kategori] || "package-variant"}
+                            size={40}
+                            color={FARVER.primaerMellem}
+                        />
+                    </View>
+                )}
+                {status && status !== "Til salg" ? (
+                    <View style={[GlobalStyle.kortBadge, status === "Solgt" ? GlobalStyle.badgeSolgt : GlobalStyle.badgeReserveret]}>
+                        <Text style={GlobalStyle.kortBadgeTekst}>{status}</Text>
+                    </View>
+                ) : erGratis ? (
+                    <View style={[GlobalStyle.kortBadge, GlobalStyle.badgeGratis]}>
+                        <Text style={GlobalStyle.kortBadgeTekst}>Gratis</Text>
+                    </View>
+                ) : null}
+            </View>
+
             <View style={GlobalStyle.kortTekst}>
-                <Text style={GlobalStyle.kortTitel}>{titel}</Text>
-                <Text style={GlobalStyle.kortMateriale}>{materiale}</Text>
+                <Text style={GlobalStyle.kortPris} numberOfLines={1}>
+                    {pris}
+                </Text>
+                <Text style={GlobalStyle.kortTitel} numberOfLines={2}>
+                    {titel}
+                </Text>
+                {stand ? (
+                    <Text style={GlobalStyle.kortMateriale} numberOfLines={1}>
+                        {stand}
+                    </Text>
+                ) : null}
                 <View style={GlobalStyle.kortBund}>
-                    <Text style={GlobalStyle.kortPris}>{pris}</Text>
-                    <Text style={GlobalStyle.kortSted}>{sted}</Text>
+                    <Ionicons name="location-outline" size={13} color={FARVER.tekstSvag} />
+                    <Text style={GlobalStyle.kortSted} numberOfLines={1}>
+                        {afstand ? afstand + " · " : ""}
+                        {sted || "Ukendt sted"}
+                    </Text>
                 </View>
-                <View style={GlobalStyle.kortBund}>
-                    <Text style={GlobalStyle.kortSaelger}>Sælges af: {saelger}</Text>
-                    {dato ? <Text style={GlobalStyle.kortSaelger}>Lagt op: {dato}</Text> : null}
-                </View>
-                {kategori ? <Text style={GlobalStyle.kortSaelger}>Kategori: {kategori}</Text> : null}
+                {dato ? <Text style={GlobalStyle.kortSaelger}>{dato}</Text> : null}
             </View>
         </Pressable>
     );

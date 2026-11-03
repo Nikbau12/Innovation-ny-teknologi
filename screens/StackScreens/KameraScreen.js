@@ -6,7 +6,6 @@ import ButtonComponent from "../../components/ButtonComponent";
 import { GlobalStyle } from "../../styles/GlobalStyle";
 
 export default function KameraScreen({ navigation, route }) {
-    // Hvilken skærm billedet skal sendes tilbage til (Opret som standard)
     const retur = route.params?.retur || "Opret";
     const [facing, setFacing] = useState("back");
     const [permission, requestPermission] = useCameraPermissions();
@@ -34,13 +33,10 @@ export default function KameraScreen({ navigation, route }) {
         if (!cameraRef.current) return;
         try {
             setLoading(true);
-            // Lav kvalitet, så billedet ikke fylder for meget i databasen
             const result = await cameraRef.current.takePictureAsync({ quality: 0.2, base64: true });
-            // I browseren er base64 allerede en hel data-url
             const billede = result.base64.startsWith("data:")
                 ? result.base64
                 : "data:image/jpeg;base64," + result.base64;
-            // Send billedet tilbage til formularen. merge beholder de andre parametre (fx opslaget ved redigering)
             navigation.popTo(retur, { billede: billede }, { merge: true });
         } catch (err) {
             console.log("Snap error:", err);
@@ -57,17 +53,14 @@ export default function KameraScreen({ navigation, route }) {
         <View style={GlobalStyle.kameraContainer}>
             <CameraView ref={cameraRef} style={GlobalStyle.kamera} facing={facing} />
             <View style={GlobalStyle.kameraKnapper}>
-                {/* Tilbage */}
                 <TouchableOpacity style={GlobalStyle.kameraKnap} onPress={() => navigation.goBack()}>
                     <Ionicons name="close-outline" size={32} color="#fff" />
                 </TouchableOpacity>
 
-                {/* Tag billede */}
                 <TouchableOpacity style={GlobalStyle.snapKnap} onPress={snap}>
                     <Text style={GlobalStyle.snapTekst}>{loading ? "..." : ""}</Text>
                 </TouchableOpacity>
 
-                {/* Vend kamera */}
                 <TouchableOpacity style={GlobalStyle.kameraKnap} onPress={toggleFacing}>
                     <Ionicons name="camera-reverse-outline" size={32} color="#fff" />
                 </TouchableOpacity>

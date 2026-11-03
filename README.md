@@ -6,7 +6,7 @@ finde billige materialer i nærheden.
 
 ## Links
 
-- **GitHub:** https://github.com/Nikbau12/Godkendelsesopgave-INNT.git 
+- **GitHub:** https://github.com/Nikbau12/Innovation-ny-teknologi 
 - **Demovideo:** https://youtu.be/ljNQOf-DfD4 
 
 ## Sådan kører du appen
@@ -21,27 +21,46 @@ Husk at udfylde `database/firebase.js` med din egen Firebase-config først (se n
 
 ## Hvad appen kan
 
-- **Login** - opret en bruger eller log ind med e-mail og kodeord (Firebase Authentication)
-- **Forside** - introduktion til både købere og sælgere, viser hvem der er logget ind, og har en log ud-knap
-- **Oversigt** - liste over materialer til salg med billede, pris, sted, sælger og dato. Kan filtreres på kategori
-- **Detaljer** - tryk på et opslag for at se det i fuld størrelse. Er det dit eget, kan du redigere eller slette det
-- **Opret opslag** - formular hvor man vælger kategori og tilføjer sit eget billede, enten med kameraet eller fra galleriet
-- **Kamera** - tag et billede af materialerne, som sendes tilbage til formularen
+- **Konto** - opret konto med navn, e-mail, telefon, postnummer/by og brugertype (privat, håndværker
+  eller virksomhed). Glemt kodeord sender et link på mail
+- **Forside** - søgefelt, tal for aktive og gratis opslag, kategorier, nyeste opslag, gratis opslag
+  og en kort guide til, hvordan appen virker
+- **Søg (oversigt)** - opslag vist i et gitter eller på et kort. Fritekstsøgning og hurtigvalg af kategori
+- **Filtre** - sortering (nyeste, ældste, pris, nærmest), afstand fra din placering eller et postnummer
+  (5-200 km), kategori, type og materialespecifikke egenskaber (fx træsort, styrkeklasse og behandling
+  for træ, eller pladetype, tykkelse og kant for gips), stand, pris fra/til, kun gratis, mindste
+  længde/bredde/tykkelse/mængde, levering, sælgertype, kun med billede og vis solgte
+- **Opret opslag** - billede (kamera eller galleri), titel, beskrivelse, mærke, kategori med type og
+  specifikationer, stand, mængde og enhed, mål i mm, pris (fast, til forhandling eller gratis, samlet
+  eller pr. enhed), levering og placering på et kort
+- **Opslag** - billede, pris, specifikationstabel, beskrivelse, kort over hvor materialerne står,
+  sælgerens profil og knapper til at skrive (eller ringe, hvis sælgeren har slået det til).
+  Er det dit eget opslag, kan du skifte status (til salg, reserveret, solgt), redigere eller slette det
+- **Beskeder** - chat mellem køber og sælger om et opslag. Fanen viser antal ulæste beskeder
+- **Profil** - din profil, dine opslag (aktive og solgte), rediger profil (billede, navn, firmanavn,
+  CVR, bio, telefon, by) og indstillinger (vis telefonnummer, skift kodeord, log ud, slet konto)
 
-Opslag gemmes i Firebase Realtime Database, så de er der stadig, når appen genstartes,
-og alle brugere kan se dem. Billederne gemmes som tekst (base64) sammen med opslaget.
-Et opslag viser kun det billede, brugeren selv lægger op - der findes ingen standardbilleder.
+Alt gemmes i Firebase Realtime Database, så det er der stadig, når appen genstartes.
+Billederne gemmes som tekst (base64) sammen med opslaget.
 
-## Nyt i denne version
+## Placering og kort
 
-- Login med Firebase (e-mail og kodeord)
-- Opslag gemmes og hentes fra Firebase Realtime Database
-- Eget billede via kamera (`expo-camera`) eller galleri (`expo-image-picker`)
-- Filter på kategori i oversigten
-- Dato for hvornår et opslag er lagt op
-- Forsiden taler nu både til købere og sælgere
-- Detaljeskærm hvor egne opslag kan redigeres og slettes
-- Flere kategorier at vælge imellem
+- På telefonen bruges `react-native-maps`, i browseren et OpenStreetMap-kort (Leaflet).
+  Metro vælger selv `KortComponent.web.js` i browseren
+- "Brug min placering" bruger `expo-location`
+- Adresser og postnumre slås op med OpenStreetMap Nominatim (gratis, ingen API-nøgle)
+
+## Database
+
+```
+Opslag/{id}                         Opslagene (inkl. saelgerId, lokation, egenskaber, status)
+Brugere/{uid}                       Profiler (navn, by, brugertype, telefon, visTelefon ...)
+Beskeder/{samtaleId}/{id}           Beskederne i en samtale
+BrugerSamtaler/{uid}/{samtaleId}    Hver brugers liste over samtaler med sidste besked og ulæste
+```
+
+En samtale har id'et `{opslagId}_{køberId}`, så samme køber altid får samme samtale om et opslag.
+Ældre opslag fra før denne version virker stadig (pris som tekst, ingen placering).
 
 ## Opsætning af Firebase
 
@@ -51,18 +70,20 @@ Et opslag viser kun det billede, brugeren selv lægger op - der findes ingen sta
 4. Projektindstillinger (tandhjulet) -> Your apps -> `</>` for at registrere en web-app
 5. Kopiér `firebaseConfig` ind i `database/firebase.js`, og sæt databasens URL ind i `getDatabase`
 
-Opslagene ligger under `Opslag` i databasen.
+Databasen kører i test mode. Husk at Firebase lukker test mode efter 30 dage, så reglerne skal
+forlænges eller skrives om, før det sker.
 
 ## Filstruktur
 
 ```
-components/             Genbrugelige komponenter (knap, tekstfelt, billede, opslagskort,
-                        login, opret bruger) og de to stack-navigationer
-screens/                Forside, Oversigt, Opret opslag og AuthScreen (login)
-screens/StackScreens/   KameraScreen, OpslagDetaljeScreen og RedigerOpslagScreen
+components/             Genbrugelige komponenter (knap, tekstfelt, chips, kort/landkort, opslagskort,
+                        samtalekort, login, opret bruger, formularen til opslag) og stack-navigationerne
+screens/                Forside, Oversigt, Opret opslag, Beskeder, Profil og AuthScreen (login)
+screens/StackScreens/   Filter, OpslagDetalje, RedigerOpslag, Chat, RedigerProfil, Indstillinger og Kamera
 database/               firebase.js - al Firebase-opsætning samlet ét sted
-data/                   const.js - listen over kategorier
-styles/                 GlobalStyle.js - al styling samlet ét sted
+data/                   const.js - kategorier, materialer og deres egenskaber, filtre
+                        funktioner.js - filtrering, sortering, priser, afstand og adresseopslag
+styles/                 GlobalStyle.js - al styling og farverne (FARVER) samlet ét sted
 assets/                 Billeder
 App.js                  Login-tjek og tab-navigationen sættes op her
 ```
@@ -70,4 +91,5 @@ App.js                  Login-tjek og tab-navigationen sættes op her
 ## Teknik
 
 React Native med Expo. Navigation med React Navigation (bottom tabs og stack).
-Firebase til login og database. Ikoner fra `@expo/vector-icons`.
+Firebase til login og database. Kort med `react-native-maps` og `expo-location`.
+Ikoner fra `@expo/vector-icons`.
