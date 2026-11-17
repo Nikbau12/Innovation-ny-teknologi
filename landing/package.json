@@ -1,0 +1,9 @@
+{
+  "name": "restock-landing",
+  "version": "1.0.0",
+  "description": "Landing page og venteliste til ReStock (separat fra Expo-appen)",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve@14.2.4 -l 3000 ."
+  }
+}

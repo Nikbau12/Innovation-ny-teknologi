@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="da">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ReStock - lancerer marts 2027</title>
+    <meta name="description" content="ReStock er markedspladsen for overskydende byggematerialer. Vi lancerer i marts 2027 - skriv dig op og få boost på dine 5 første annoncer." />
+    <meta property="og:title" content="ReStock lancerer i marts 2027" />
+    <meta property="og:description" content="Skriv dig op nu og få boost på dine 5 første annoncer." />
+    <link rel="icon" href="favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"></script>
+</head>
+<body>
+    <header class="nav">
+        <div class="wrap nav-inner">
+            <a href="#" class="logo" aria-label="ReStock">
+                <span class="logo-ikon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 12a8 8 0 0 1-13.7 5.6" /><path d="M4 12A8 8 0 0 1 17.7 6.4" />
+                        <path d="M18 2.5v4h-4" /><path d="M6 21.5v-4h4" />
+                    </svg>
+                </span>
+                <span class="logo-tekst">Re<span>Stock</span></span>
+            </a>
+            <a href="#tilmeld" class="knap knap-lille">Skriv dig op</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero">
+            <div class="wrap hero-grid">
+                <div class="hero-tekst">
+                    <span class="badge"><span class="prik"></span>Lancerer i marts 2027</span>
+                    <h1>Overskydende byggematerialer skal ikke ende i containeren.</h1>
+                    <p class="lead">
+                        ReStock er markedspladsen, hvor håndværkere, virksomheder og private sælger
+                        eller forærer de materialer, de har tilovers - og hvor du finder billige
+                        materialer tæt på dig.
+                    </p>
+                    <div class="nedtaelling">
+                        <div><strong data-dage>-</strong><span>dage til lancering</span></div>
+                        <div id="antalTilmeldte" hidden><strong>0</strong><span>har allerede skrevet sig op</span></div>
+                    </div>
+                </div>
+
+                <div class="kort tilmeld" id="tilmeld">
+                    <div class="boost-banner">
+                        <span class="boost-ikon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z" /></svg>
+                        </span>
+                        <div>
+                            <strong>Boost på dine 5 første annoncer</strong>
+                            <span>Kun for dem, der skriver sig op før lanceringen.</span>
+                        </div>
+                    </div>
+
+                    <form id="tilmeldForm" novalidate>
+                        <label class="felt">
+                            <span>E-mail</span>
+                            <input type="email" name="email" placeholder="dig@eksempel.dk" autocomplete="email" required />
+                        </label>
+                        <div class="felt-raekke">
+                            <label class="felt">
+                                <span>Fornavn <em>(valgfrit)</em></span>
+                                <input type="text" name="navn" autocomplete="given-name" maxlength="60" />
+                            </label>
+                            <label class="felt">
+                                <span>Postnr. <em>(valgfrit)</em></span>
+                                <input type="text" name="postnummer" inputmode="numeric" maxlength="4" autocomplete="postal-code" />
+                            </label>
+                        </div>
+
+                        <fieldset class="felt">
+                            <legend>Jeg er</legend>
+                            <div class="valg">
+                                <label><input type="radio" name="brugertype" value="privat" checked /><span>Privat</span></label>
+                                <label><input type="radio" name="brugertype" value="haandvaerker" /><span>Håndværker</span></label>
+                                <label><input type="radio" name="brugertype" value="virksomhed" /><span>Virksomhed</span></label>
+                            </div>
+                        </fieldset>
+
+                        <!-- honeypot mod spam - skjult for mennesker -->
+                        <input type="text" name="firma" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+                        <label class="samtykke">
+                            <input type="checkbox" name="samtykke" required />
+                            <span>Ja tak, I må sende mig en mail om lanceringen og min boost-kode. Jeg kan altid afmelde mig igen.</span>
+                        </label>
+
+                        <p id="formFejl" class="fejl" role="alert" hidden></p>
+                        <button type="submit" id="tilmeldKnap" class="knap knap-fuld">Skriv mig op</button>
+                        <p class="smaat">Gratis og uforpligtende. Vi deler aldrig din mail med andre.</p>
+                    </form>
+
+                    <div id="succes" class="succes" hidden aria-live="polite">
+                        <div class="succes-ikon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+                        </div>
+                        <h2 id="succesTitel">Du er på listen!</h2>
+                        <p id="succesTekst">
+                            Tak, <span id="succesEmail"></span> er skrevet op. Når ReStock åbner i marts 2027,
+                            får dine 5 første annoncer boost.
+                        </p>
+                        <div id="kodeBoks" class="kode-boks">
+                            <span>Din boost-kode</span>
+                            <div class="kode-raekke">
+                                <code id="succesKode"></code>
+                                <button type="button" id="kopierKode" class="knap-tekst">Kopiér</button>
+                            </div>
+                            <p id="succesMail" class="smaat"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOOST -->
+        <section class="sektion">
+            <div class="wrap">
+                <h2 class="sektion-titel">Hvad får du med boost?</h2>
+                <p class="sektion-under">Dine første 5 annoncer kommer foran de andre, så de bliver set og solgt hurtigere.</p>
+                <div class="grid-3">
+                    <div class="kort fordel">
+                        <div class="fordel-ikon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5" /><path d="m5 12 7-7 7 7" /></svg>
+                        </div>
+                        <h3>Øverst i søgninger</h3>
+                        <p>Dine annoncer vises før de andre, når købere i nærheden søger efter materialer.</p>
+                    </div>
+                    <div class="kort fordel">
+                        <div class="fordel-ikon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" /></svg>
+                        </div>
+                        <h3>Fremhævet på forsiden</h3>
+                        <p>Boostede annoncer får et mærke og en plads blandt de nyeste opslag på forsiden.</p>
+                    </div>
+                    <div class="kort fordel">
+                        <div class="fordel-ikon">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
+                        </div>
+                        <h3>Helt gratis</h3>
+                        <p>Det koster ikke noget. Skriver du dig op før lanceringen, får du boost på dine første 5 annoncer uden betaling.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SÅDAN VIRKER DET -->
+        <section class="sektion sektion-lys">
+            <div class="wrap">
+                <h2 class="sektion-titel">Sådan virker ReStock</h2>
+                <p class="sektion-under">Fra rest på byggepladsen til materiale i en ny opgave på få minutter.</p>
+                <ol class="trin">
+                    <li>
+                        <span class="trin-nr">1</span>
+                        <h3>Tag et billede</h3>
+                        <p>Opret en annonce med billede, mål, mængde og pris - eller giv det væk gratis.</p>
+                    </li>
+                    <li>
+                        <span class="trin-nr">2</span>
+                        <h3>Bliv fundet lokalt</h3>
+                        <p>Købere søger på kort og filtrerer på afstand, kategori, træsort, pladetype og meget mere.</p>
+                    </li>
+                    <li>
+                        <span class="trin-nr">3</span>
+                        <h3>Aftal i chatten</h3>
+                        <p>Skriv direkte sammen i appen, aftal afhentning eller levering, og marker som solgt.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- FOR HVEM -->
+        <section class="sektion">
+            <div class="wrap">
+                <h2 class="sektion-titel">Til alle, der bygger</h2>
+                <div class="grid-3">
+                    <div class="kort hvem">
+                        <h3>Håndværkere</h3>
+                        <p>Få penge for restmaterialer i stedet for at betale for at køre dem på genbrugspladsen.</p>
+                    </div>
+                    <div class="kort hvem">
+                        <h3>Virksomheder</h3>
+                        <p>Ryd lageret for fejlbestillinger og overskud, og dokumentér at materialerne bliver genbrugt.</p>
+                    </div>
+                    <div class="kort hvem">
+                        <h3>Private</h3>
+                        <p>Find billige brædder, gipsplader, fliser og isolering til næste projekt - tæt på dig.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="sektion sektion-lys">
+            <div class="wrap smal">
+                <h2 class="sektion-titel">Spørgsmål og svar</h2>
+                <details>
+                    <summary>Hvornår åbner ReStock?</summary>
+                    <p>Vi lancerer i marts 2027. Alle på ventelisten får en mail, så snart appen kan hentes.</p>
+                </details>
+                <details>
+                    <summary>Hvordan bruger jeg min boost-kode?</summary>
+                    <p>Når du opretter din konto i appen med samme e-mail, bliver boostet tilføjet automatisk. Du kan også taste koden under din profil.</p>
+                </details>
+                <details>
+                    <summary>Koster det noget at skrive sig op?</summary>
+                    <p>Nej. Det er gratis og uforpligtende, og du kan afmelde dig når som helst.</p>
+                </details>
+                <details>
+                    <summary>Hvad bruger I min e-mail til?</summary>
+                    <p>Kun til at give dig besked om lanceringen og sende din boost-kode. Vi deler den aldrig med andre.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- SLUT-CTA -->
+        <section class="cta">
+            <div class="wrap cta-inner">
+                <h2>Vær med fra dag ét</h2>
+                <p><span data-dage>-</span> dage til lancering. Skriv dig op og få boost på dine 5 første annoncer.</p>
+                <a href="#tilmeld" class="knap knap-accent">Skriv mig op</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="wrap footer-inner">
+            <span>&copy; 2026 ReStock</span>
+            <span>Markedspladsen for overskydende byggematerialer</span>
+        </div>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
